@@ -1,0 +1,11 @@
+[project]
+name = "ai-toolkit"
+version = "0.1.0"
+dependencies = ["typer", "rich", "openai", "python-dotenv"]
+
+[project.scripts]
+ai = "ai_toolkit.main:app"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
