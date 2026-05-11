@@ -23,6 +23,7 @@ env/
 .env
 .env.*
 !.env.example
+.pypirc
 
 # Tool caches
 .pytest_cache/

@@ -1,52 +1,62 @@
-# ai-toolkit
+# ai-toolkit-cli
 
-`ai-toolkit` is a small Typer-based command-line app for AI-assisted terminal workflows.
+AI Toolkit CLI is a small Typer-based command-line app for AI-assisted terminal workflows. It exposes a single entry point named `ai` and routes into the `chat`, `code`, and `summarize` command groups.
 
-## Commands
+## Features
 
-The CLI is organized into three command groups:
+- Fast command-line access through the `ai` launcher
+- OpenRouter-backed chat completions
+- Separate command groups for chat, code generation, and summarization
+- Simple environment-driven configuration
 
-- `chat`
-- `code`
-- `summarize`
+## Installation
 
-The top-level entry point is `ai`.
-
-## Project Layout
-
-- `main.py` - Typer application and command registration
-- `commands/` - command group modules
-- `core/` - client and configuration helpers
-- `utils/` - shared formatting helpers
-
-## Requirements
-
-The project currently depends on:
-
-- `typer`
-- `rich`
-- `openai`
-- `python-dotenv`
-
-## Setup
-
-1. Create and activate a Python 3.12 virtual environment.
-2. Install the project dependencies.
-3. Run the CLI help to verify the app loads.
-
-Example:
+Create a virtual environment and install the project in editable mode:
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
+python -m pip install --upgrade pip
 pip install -e .
+```
+
+After installation, verify the CLI loads:
+
+```bash
 ai --help
 ```
 
-## Environment
+## Configuration
 
-Store local configuration in a `.env` file. Keep API keys and machine-specific values out of version control.
+The client reads `OPENROUTER_API_KEY` from the environment. Store it in a local `.env` file so it is loaded automatically at runtime:
+
+```env
+OPENROUTER_API_KEY=your_openrouter_key_here
+```
+
+Do not commit `.env` or `.pypirc` files.
+
+## Usage
+
+The project currently exposes these command groups:
+
+- `ai chat`
+- `ai code`
+- `ai summarize`
+
+Use `ai --help` to see the available subcommands and options for each group.
+
+## Project Layout
+
+- `ai_toolkit/main.py` - Typer application and command registration
+- `ai_toolkit/commands/` - command group modules
+- `ai_toolkit/core/` - OpenRouter client helpers and shared logic
+- `install.ps1` and `install.sh` - convenience install scripts
+
+## Publishing
+
+The package metadata is defined in `pyproject.toml`, including the console script entry point and dependency list. Build artifacts such as `dist/` and `*.egg-info/` are already ignored for local development.
 
 ## Notes
 
-The repository is still in an early stage, so command modules and supporting helpers are intentionally lightweight. Add usage examples here as the CLI grows.
+The repository is still lightweight by design. Add command examples and screenshots here as the CLI grows.
