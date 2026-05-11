@@ -28,7 +28,7 @@ ai --help
 
 ## Configuration
 
-The client reads `OPENROUTER_API_KEY` from the environment. Store it in a local `.env` file so it is loaded automatically at runtime
+The client reads `OPENROUTER_API_KEY` from the environment. Store it in a local `.env` file so it is loaded automatically at runtime:
 
 ```env
 OPENROUTER_API_KEY=your_openrouter_key_here
