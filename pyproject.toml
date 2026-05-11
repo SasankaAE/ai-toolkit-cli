@@ -1,10 +1,25 @@
 [project]
 name = "ai-toolkit-cli"
-version = "0.1.0"
-dependencies = ["typer", "rich", "openai", "python-dotenv"]
+version = "1.0.0"
+description = "AI Toolkit CLI powered by OpenRouter"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Sasanka Akash", email = "sasankaakash22@gmail.com" }]
+requires-python = ">=3.10"
+dependencies = [
+    "typer>=0.12.0",
+    "rich>=13.0.0",
+    "openai>=1.52.0",
+    "python-dotenv>=1.0.0",
+    "prompt_toolkit>=3.0.0",
+]
 
 [project.scripts]
 ai = "ai_toolkit.main:app"
+
+[project.urls]
+Homepage = "https://github.com/SasankaAE/ai-toolkit-cli"
+Documentation = "https://SasankaAE.github.io/ai-toolkit-cli"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
