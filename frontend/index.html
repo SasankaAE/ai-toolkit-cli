@@ -493,7 +493,6 @@
     .t-line {
       display: flex;
       gap: 8px;
-      flex-wrap: nowrap;
     }
 
     .t-prompt {
@@ -529,7 +528,7 @@
     .t-cursor {
       display: inline-block;
       width: 8px;
-      height: 1em;
+      height: 20px;
       background: var(--purple);
       animation: blink 1s step-end infinite;
       vertical-align: text-bottom;
@@ -1391,12 +1390,12 @@
         }
         if (line.type === 'border-top') {
           body.innerHTML += `<div class="t-line"><span class="t-purple">╔═ AI ══════════════════════════════════════╗</span></div>`;
-          body.innerHTML += `<div class="t-line"><span class="t-purple">║</span><span style="display:inline-block;width:44ch"> </span><span class="t-purple">║</span></div>`;
+          body.innerHTML += `<div class="t-line"><span class="t-purple"></span><span style="display:inline-block;width:44ch"> </span><span class="t-purple"></span></div>`;
           await new Promise(r => setTimeout(r, 60));
           continue;
         }
         if (line.type === 'border-bot') {
-          body.innerHTML += `<div class="t-line"><span class="t-purple">║</span><span style="display:inline-block;width:44ch"> </span><span class="t-purple">║</span></div>`;
+          body.innerHTML += `<div class="t-line"><span class="t-purple"></span><span style="display:inline-block;width:44ch"> </span><span class="t-purple"></span></div>`;
           body.innerHTML += `<div class="t-line"><span class="t-purple">╚═══════════════════════════════════════════╝</span></div>`;
           await new Promise(r => setTimeout(r, 60));
           continue;
@@ -1419,7 +1418,7 @@
         if (line.type === 'response') {
           const div = document.createElement('div');
           div.className = 't-line';
-          div.innerHTML = `<span class="t-purple">║</span> <span class="t-out response-inner"></span> <span class="t-purple">║</span>`;
+          div.innerHTML = `<span class="t-purple"></span> <span class="t-out response-inner"></span> <span class="t-purple"></span>`;
           body.appendChild(div);
           const inner = div.querySelector('.response-inner');
           await typeText(inner, line.text, 14);
