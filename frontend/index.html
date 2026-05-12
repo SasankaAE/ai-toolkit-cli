@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>AI Toolkit CLI — Powered by OpenRouter</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="shortcut icon" href="image/logo.png" type="image/x-icon">
   <link
     href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;700;800&display=swap"
     rel="stylesheet">
@@ -990,6 +991,66 @@
         grid-template-columns: repeat(3, 1fr);
       }
     }
+
+    /* ── Pixel Ghost ── */
+    .ghost-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 18px 0 10px;
+      animation: ghostFloat 3s ease-in-out infinite;
+    }
+
+    .ghost-wrap canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      filter:
+        drop-shadow(0 0 12px rgba(155, 89, 255, .45)) drop-shadow(0 0 28px rgba(34, 211, 238, .18));
+      transform: scale(.9);
+    }
+
+    @keyframes ghostFloat {
+
+      0%,
+      100% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* ── Pixel Robot ── */
+    .big-ghost {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 40px 0;
+      animation: ghostFloat 4s ease-in-out infinite;
+    }
+
+    .big-ghost canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+
+      filter:
+        drop-shadow(0 0 12px rgba(155, 89, 255, 0.45)) drop-shadow(0 0 30px rgba(34, 211, 238, 0.18));
+
+      transform: scale(1.4);
+    }
+
+    @keyframes ghostFloat {
+
+      0%,
+      100% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-18px);
+      }
+    }
   </style>
 </head>
 
@@ -1004,7 +1065,7 @@
   <nav>
     <a class="nav-logo" href="#">
       <div class="nav-logo-dot"></div>
-      AI Toolkit
+      ALTO AI
     </a>
     <ul class="nav-links">
       <li><a href="#install">Install</a></li>
@@ -1031,6 +1092,9 @@
   <section class="hero">
     <div class="hero-badge">
       <span>●</span> v1.0.0 — Now on PyPI
+    </div>
+    <div class="ghost-wrap">
+      <canvas id="gc" width="160" height="180"></canvas>
     </div>
     <h1 class="hero-title">
       <span class="line1">ALTO AI.</span>
@@ -1250,7 +1314,8 @@
   <!-- FOOTER -->
   <footer>
     <div class="footer-left">
-      Built with <span style="color: #c084fc">Sasanka Akash</span>  · Powered by <a href="https://openrouter.ai" target="_blank">OpenRouter</a> ·
+      Built with <span style="color: #c084fc">Sasanka Akash</span> · Powered by <a href="https://openrouter.ai"
+        target="_blank">OpenRouter</a> ·
       <a href="https://github.com/SasankaAE/ai-toolkit-cli" target="_blank">GitHub</a>
     </div>
     <div class="footer-links">
@@ -1402,6 +1467,125 @@
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.08 });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    const c = document.getElementById('gc');
+    const ctx = c.getContext('2d');
+    const S = 10;
+
+    const ghost = [
+      [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+      [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1],
+      [1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ];
+
+    const eyes = [
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0],
+      [0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ];
+
+    // 3 bottom fringe variants for wave
+    const fringeA = [[1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]];
+    const fringeB = [[1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0]];
+    const fringeC = [[0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1]];
+
+    // Hand shapes (left and right), waving up/down
+    const handUp = [
+      [0, 1, 0],
+      [1, 1, 1],
+      [0, 1, 0],
+    ];
+    const handMid = [
+      [0, 0, 0],
+      [1, 1, 1],
+      [0, 1, 0],
+    ];
+
+    let frame = 0;
+
+    function draw() {
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      const t = frame;
+      const floatY = Math.round(Math.sin(t * 0.08) * 6);
+      const fringeIdx = Math.floor(t / 6) % 3;
+      const fringe = fringeIdx === 0 ? fringeA : fringeIdx === 1 ? fringeB : fringeC;
+      const handWave = Math.sin(t * 0.12) > 0;
+
+      const offX = 2; // offset in pixels to center 12 cols in 16 cols canvas
+      const baseY = 30 + floatY;
+
+      // Draw ghost body
+      for (let row = 0; row < ghost.length; row++) {
+        for (let col = 0; col < ghost[row].length; col++) {
+          if (ghost[row][col]) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect((offX + col) * S, (baseY + row * S), S, S);
+          }
+        }
+      }
+
+      // Draw fringe
+      for (let col = 0; col < fringe[0].length; col++) {
+        if (fringe[0][col]) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect((offX + col) * S, (baseY + ghost.length * S), S, S);
+        }
+      }
+
+      // Draw eyes
+      for (let row = 0; row < eyes.length; row++) {
+        for (let col = 0; col < eyes[row].length; col++) {
+          if (eyes[row][col]) {
+            ctx.fillStyle = '#1a0a2e';
+            ctx.fillRect((offX + col) * S, (baseY + row * S), S, S);
+          }
+        }
+      }
+
+      // Draw left hand (col offset = -2, row offset ~5)
+      const lHand = handWave ? handUp : handMid;
+      const lHX = (offX - 3) * S;
+      const lHY = baseY + 4 * S;
+      for (let r = 0; r < lHand.length; r++) {
+        for (let col2 = 0; col2 < lHand[r].length; col2++) {
+          if (lHand[r][col2]) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(lHX + col2 * S, lHY + r * S, S, S);
+          }
+        }
+      }
+
+      // Draw right hand (right side)
+      const rHand = handWave ? handMid : handUp;
+      const rHX = (offX + 12) * S;
+      const rHY = baseY + 4 * S;
+      for (let r = 0; r < rHand.length; r++) {
+        for (let col2 = 0; col2 < rHand[r].length; col2++) {
+          if (rHand[r][col2]) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(rHX + col2 * S, rHY + r * S, S, S);
+          }
+        }
+      }
+
+      frame++;
+      requestAnimationFrame(draw);
+    }
+
+    draw();
   </script>
 </body>
 
