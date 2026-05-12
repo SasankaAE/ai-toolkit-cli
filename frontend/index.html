@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>AI Toolkit CLI — Powered by OpenRouter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #0f0f18;
+      --bg3: #13131f;
+      --border: #1e1e30;
+      --purple: #9b59ff;
+      --purple2: #c084fc;
+      --cyan: #22d3ee;
+      --green: #4ade80;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --text3: #475569;
+      --mono: 'JetBrains Mono', monospace;
+      --display: 'Syne', sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      overflow-x: hidden;
+    }
+
+    /* ── Custom cursor (desktop only) ── */
+    @media (pointer: fine) {
+      body {
+        cursor: none;
+      }
+
+      .cursor,
+      .cursor-ring {
+        display: block;
+      }
+    }
+
+    @media (pointer: coarse) {
+      body {
+        cursor: auto;
+      }
+
+      .cursor,
+      .cursor-ring {
+        display: none !important;
+      }
+    }
+
+    .cursor {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      background: var(--purple);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.1s;
+      mix-blend-mode: screen;
+    }
+
+    .cursor-ring {
+      position: fixed;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--purple2);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.5;
+      transition: transform 0.15s, width 0.2s, height 0.2s;
+    }
+
+    /* ── Noise overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    /* ── Grid bg ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(16px, 4vw, 48px);
+      height: 60px;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .nav-logo-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--purple);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--purple);
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+      }
+    }
+
+    .nav-links {
+      display: flex;
+      gap: clamp(16px, 2.5vw, 32px);
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text2);
+      font-size: 0.78rem;
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+
+    .nav-links a:hover {
+      color: var(--purple2);
+    }
+
+    .nav-cta {
+      background: var(--purple);
+      color: white;
+      border: none;
+      padding: 8px clamp(12px, 2vw, 20px);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      cursor: pointer;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: background 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .nav-cta:hover {
+      background: var(--purple2);
+      box-shadow: 0 0 20px rgba(155, 89, 255, 0.4);
+    }
+
+    /* hamburger */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 200;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--text2);
+      transition: all 0.3s;
+      border-radius: 1px;
+    }
+
+    .hamburger.open span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    .hamburger.open span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.open span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      background: rgba(10, 10, 15, 0.97);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 24px clamp(16px, 4vw, 48px);
+      z-index: 99;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .mobile-menu.open {
+      display: flex;
+    }
+
+    .mobile-menu a {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      transition: color 0.2s;
+    }
+
+    .mobile-menu a:hover {
+      color: var(--purple2);
+    }
+
+    .mobile-menu .mobile-cta {
+      background: var(--purple);
+      color: white;
+      padding: 12px 20px;
+      text-align: center;
+      font-size: 0.88rem;
+      border: none;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      margin-top: 4px;
+    }
+
+    /* ── Sections ── */
+    section {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(90px, 12vh, 120px) clamp(16px, 5vw, 48px) clamp(40px, 6vh, 80px);
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      padding: 6px 16px;
+      font-size: clamp(0.68rem, 1.8vw, 0.75rem);
+      color: var(--text2);
+      margin-bottom: clamp(24px, 5vw, 40px);
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .hero-badge span {
+      color: var(--green);
+    }
+
+    @keyframes fadeDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-title {
+      font-family: var(--display);
+      font-size: clamp(2.4rem, 9vw, 7rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      margin-bottom: clamp(16px, 3vw, 24px);
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-title .line1 {
+      color: var(--text);
+      display: block;
+    }
+
+    .hero-title .line2 {
+      display: block;
+      background: linear-gradient(135deg, var(--purple), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(0.82rem, 2.2vw, 1rem);
+      color: var(--text2);
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: clamp(32px, 6vw, 48px);
+      animation: fadeUp 0.7s 0.2s ease both;
+      padding: 0 8px;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 0.7s 0.3s ease both;
+    }
+
+    .btn-primary {
+      background: var(--purple);
+      color: white;
+      border: none;
+      padding: clamp(11px, 2vw, 14px) clamp(22px, 4vw, 32px);
+      font-family: var(--mono);
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+      cursor: pointer;
+      clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary:hover {
+      background: var(--purple2);
+      box-shadow: 0 0 30px rgba(155, 89, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text2);
+      border: 1px solid var(--border);
+      padding: clamp(11px, 2vw, 14px) clamp(22px, 4vw, 32px);
+      font-family: var(--mono);
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--purple);
+      color: var(--purple2);
+    }
+
+    /* ── Terminal demo ── */
+    .terminal-wrap {
+      margin-top: clamp(40px, 7vw, 64px);
+      width: 100%;
+      max-width: 760px;
+      animation: fadeUp 0.7s 0.4s ease both;
+      overflow: hidden;
+    }
+
+    .terminal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .terminal-bar {
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .t-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .t-dot.r {
+      background: var(--red);
+    }
+
+    .t-dot.y {
+      background: var(--yellow);
+    }
+
+    .t-dot.g {
+      background: var(--green);
+    }
+
+    .terminal-title {
+      flex: 1;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text3);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .terminal-body {
+      padding: clamp(14px, 3vw, 24px);
+      font-size: clamp(0.72rem, 1.8vw, 0.85rem);
+      line-height: 1.8;
+      min-height: 180px;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .t-line {
+      display: flex;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+
+    .t-prompt {
+      color: var(--purple);
+      flex-shrink: 0;
+    }
+
+    .t-cmd {
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .t-out {
+      color: var(--text2);
+    }
+
+    .t-green {
+      color: var(--green);
+    }
+
+    .t-cyan {
+      color: var(--cyan);
+    }
+
+    .t-yellow {
+      color: var(--yellow);
+    }
+
+    .t-purple {
+      color: var(--purple2);
+    }
+
+    .t-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1em;
+      background: var(--purple);
+      animation: blink 1s step-end infinite;
+      vertical-align: text-bottom;
+      flex-shrink: 0;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0
+      }
+    }
+
+    /* ── Install section ── */
+    .install-section {
+      padding: clamp(60px, 10vw, 100px) clamp(16px, 5vw, 48px);
+      max-width: 1150px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: clamp(0.68rem, 1.8vw, 0.75rem);
+      letter-spacing: 0.15em;
+      color: var(--purple);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: var(--display);
+      font-size: clamp(1.6rem, 5vw, 3rem);
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      color: var(--text2);
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+      line-height: 1.7;
+      margin-bottom: clamp(32px, 5vw, 48px);
+      max-width: 520px;
+    }
+
+    /* tabs */
+    .install-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .install-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 10px clamp(12px, 2.5vw, 20px);
+      font-family: var(--mono);
+      font-size: clamp(0.72rem, 1.8vw, 0.8rem);
+      color: var(--text3);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tab-btn:hover {
+      color: var(--text2);
+    }
+
+    .tab-btn.active {
+      color: var(--purple2);
+      border-bottom-color: var(--purple);
+    }
+
+    .tab-btn.windows.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+    }
+
+    .tab-btn.macos.active {
+      color: var(--green);
+      border-bottom-color: var(--green);
+    }
+
+    .tab-btn.pip.active {
+      color: var(--yellow);
+      border-bottom-color: var(--yellow);
+    }
+
+    .tab-btn.uv.active {
+      color: var(--purple2);
+      border-bottom-color: var(--purple);
+    }
+
+    .install-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-top: none;
+      display: none;
+    }
+
+    .install-box.active {
+      display: block;
+    }
+
+    .install-box-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: clamp(14px, 2.5vw, 20px) clamp(14px, 2.5vw, 24px);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .install-cmd {
+      font-size: clamp(0.72rem, 1.8vw, 0.9rem);
+      color: var(--purple2);
+      word-break: break-all;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .install-cmd .dollar {
+      color: var(--text3);
+      margin-right: 8px;
+    }
+
+    .copy-btn {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      padding: 6px 14px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .copy-btn:hover {
+      border-color: var(--purple);
+      color: var(--purple2);
+    }
+
+    .copy-btn.copied {
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    .install-steps {
+      padding: clamp(16px, 3vw, 24px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .install-step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      border: 1px solid var(--purple);
+      color: var(--purple);
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-text {
+      font-size: clamp(0.78rem, 1.9vw, 0.85rem);
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    .step-text code {
+      background: var(--bg3);
+      color: var(--yellow);
+      padding: 1px 6px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      word-break: break-all;
+    }
+
+    .step-text a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    .step-text a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── Features ── */
+    .features-section {
+      padding: clamp(60px, 10vw, 100px) clamp(16px, 5vw, 48px);
+      max-width: 1150px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 48px;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      padding: clamp(20px, 4vw, 32px);
+      transition: background 0.2s;
+    }
+
+    .feature-card:hover {
+      background: var(--bg2);
+    }
+
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+    }
+
+    .feature-name {
+      font-family: var(--display);
+      font-size: clamp(0.95rem, 2.2vw, 1.05rem);
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .feature-desc {
+      font-size: clamp(0.76rem, 1.8vw, 0.82rem);
+      color: var(--text2);
+      line-height: 1.7;
+    }
+
+    /* ── Commands section ── */
+    .commands-section {
+      padding: clamp(60px, 10vw, 100px) clamp(16px, 5vw, 48px);
+      max-width: 1150px;
+      margin: 0 auto;
+    }
+
+    .cmd-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 48px;
+    }
+
+    .cmd-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: clamp(14px, 2.5vw, 20px) clamp(14px, 2.5vw, 24px);
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      transition: border-color 0.2s;
+      flex-wrap: wrap;
+    }
+
+    .cmd-item:hover {
+      border-color: var(--purple);
+    }
+
+    .cmd-name {
+      font-size: clamp(0.76rem, 1.9vw, 0.88rem);
+      color: var(--cyan);
+      min-width: min(240px, 100%);
+      flex-shrink: 0;
+      word-break: break-all;
+    }
+
+    .cmd-name .dollar {
+      color: var(--text3);
+      margin-right: 6px;
+    }
+
+    .cmd-desc {
+      font-size: clamp(0.76rem, 1.8vw, 0.82rem);
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: clamp(24px, 4vw, 40px) clamp(16px, 4vw, 48px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-left {
+      font-size: 0.8rem;
+      color: var(--text3);
+    }
+
+    .footer-left a {
+      color: var(--purple2);
+      text-decoration: none;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: clamp(12px, 3vw, 24px);
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      font-size: 0.8rem;
+      color: var(--text3);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--purple2);
+    }
+
+    /* ── Glow orbs ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.12;
+    }
+
+    .orb1 {
+      width: clamp(200px, 40vw, 500px);
+      height: clamp(200px, 40vw, 500px);
+      background: var(--purple);
+      top: -100px;
+      left: -100px;
+      animation: drift1 12s ease-in-out infinite alternate;
+    }
+
+    .orb2 {
+      width: clamp(180px, 35vw, 400px);
+      height: clamp(180px, 35vw, 400px);
+      background: var(--cyan);
+      bottom: 20%;
+      right: -100px;
+      animation: drift2 15s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift1 {
+      from {
+        transform: translate(0, 0);
+      }
+
+      to {
+        transform: translate(60px, 40px);
+      }
+    }
+
+    @keyframes drift2 {
+      from {
+        transform: translate(0, 0);
+      }
+
+      to {
+        transform: translate(-40px, -60px);
+      }
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Responsive breakpoints ── */
+
+    /* Tablet: hide nav links, show hamburger */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .hamburger {
+        display: flex;
+      }
+
+      .nav-cta {
+        display: none;
+      }
+    }
+
+    /* Small mobile tweaks */
+    @media (max-width: 480px) {
+      .hero-btns {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        width: 100%;
+        max-width: 280px;
+        text-align: center;
+      }
+
+      .cmd-name {
+        min-width: unset;
+        width: 100%;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .install-box-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .copy-btn {
+        align-self: flex-end;
+      }
+    }
+
+    /* Large screens */
+    @media (min-width: 1400px) {
+      .features-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="#">
+      <div class="nav-logo-dot"></div>
+      AI Toolkit
+    </a>
+    <ul class="nav-links">
+      <li><a href="#install">Install</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#commands">Commands</a></li>
+      <li><a href="https://github.com/SasankaAE/ai-toolkit-cli" target="_blank">GitHub</a></li>
+    </ul>
+    <a class="nav-cta" href="#install">Get Started →</a>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#install" onclick="closeMobileMenu()">Install</a>
+    <a href="#features" onclick="closeMobileMenu()">Features</a>
+    <a href="#commands" onclick="closeMobileMenu()">Commands</a>
+    <a href="https://github.com/SasankaAE/ai-toolkit-cli" target="_blank">GitHub</a>
+    <a href="#install" class="mobile-cta" onclick="closeMobileMenu()">Get Started →</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span>●</span> v1.0.0 — Now on PyPI
+    </div>
+    <h1 class="hero-title">
+      <span class="line1">ALTO AI.</span>
+      <span class="line2">Any Model.</span>
+    </h1>
+    <p class="hero-sub">
+      A developer-first CLI powered by OpenRouter. Switch between Claude, GPT-4o, Gemini, and Llama — all from your
+      terminal.
+    </p>
+    <div class="hero-btns">
+      <a href="#install" class="btn-primary">Install Now</a>
+      <a href="https://github.com/SasankaAE/ai-toolkit-cli" class="btn-secondary" target="_blank">View on GitHub</a>
+    </div>
+
+    <div class="terminal-wrap">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="t-dot r"></div>
+          <div class="t-dot y"></div>
+          <div class="t-dot g"></div>
+          <div class="terminal-title">PowerShell — ai-toolkit-cli</div>
+        </div>
+        <div class="terminal-body" id="termBody"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section class="install-section reveal" id="install">
+    <div class="section-label">// quick start</div>
+    <h2 class="section-title">Install in seconds</h2>
+    <p class="section-sub">
+      One command. Works on Windows, macOS, and Linux. No config needed — just set your OpenRouter key and go.
+    </p>
+
+    <div class="install-tabs">
+      <button class="tab-btn windows active" onclick="switchTab('windows')">Windows</button>
+      <button class="tab-btn macos" onclick="switchTab('macos')">macOS &amp; Linux</button>
+      <button class="tab-btn pip" onclick="switchTab('pip')">pip</button>
+      <button class="tab-btn uv" onclick="switchTab('uv')">uv</button>
+    </div>
+
+    <!-- Windows -->
+    <div class="install-box active" id="tab-windows">
+      <div class="install-box-inner">
+        <div class="install-cmd">
+          <span class="dollar">$</span>powershell -c "irm
+          https://raw.githubusercontent.com/SasankaAE/ai-toolkit-cli/main/install.ps1 | iex"
+        </div>
+        <button class="copy-btn"
+          onclick="copyCmd(this, 'powershell -c &quot;irm https://raw.githubusercontent.com/SasankaAE/ai-toolkit-cli/main/install.ps1 | iex&quot;')">Copy</button>
+      </div>
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Open <strong>PowerShell</strong> and paste the command above.</div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Get a free API key at <a href="https://openrouter.ai" target="_blank">openrouter.ai</a>
+            and set it: <code>$env:OPENROUTER_API_KEY="sk-or-..."</code></div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Run: <code>ai chat ask-cmd What is Python</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- macOS -->
+    <div class="install-box" id="tab-macos">
+      <div class="install-box-inner">
+        <div class="install-cmd"><span class="dollar">$</span>curl -fsSL
+          https://raw.githubusercontent.com/SasankaAE/ai-toolkit-cli/main/install.sh | bash</div>
+        <button class="copy-btn"
+          onclick="copyCmd(this, 'curl -fsSL https://raw.githubusercontent.com/SasankaAE/ai-toolkit-cli/main/install.sh | bash')">Copy</button>
+      </div>
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Open <strong>Terminal</strong> and paste the command above.</div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Set your key: <code>export OPENROUTER_API_KEY="sk-or-..."</code></div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Run: <code>ai chat ask-cmd What is Python</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- pip -->
+    <div class="install-box" id="tab-pip">
+      <div class="install-box-inner">
+        <div class="install-cmd"><span class="dollar">$</span>pip install ai-toolkit-cli</div>
+        <button class="copy-btn" onclick="copyCmd(this, 'pip install ai-toolkit-cli')">Copy</button>
+      </div>
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Requires <strong>Python 3.10+</strong>. Install from <a href="https://python.org"
+              target="_blank">python.org</a> if needed.</div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Set your key: <code>export OPENROUTER_API_KEY="sk-or-..."</code></div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Run: <code>ai chat ask-cmd What is Python</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- uv -->
+    <div class="install-box" id="tab-uv">
+      <div class="install-box-inner">
+        <div class="install-cmd"><span class="dollar">$</span>uv pip install ai-toolkit-cli</div>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv pip install ai-toolkit-cli')">Copy</button>
+      </div>
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Install <strong>uv</strong> first: <code>pip install uv</code></div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Set your key: <code>export OPENROUTER_API_KEY="sk-or-..."</code></div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Run: <code>ai chat ask-cmd What is Python</code></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features-section reveal" id="features">
+    <div class="section-label">// why ai toolkit</div>
+    <h2 class="section-title">Built for developers</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-name">Any Model</div>
+        <div class="feature-desc">Switch between Claude, GPT-4o, Gemini, Llama, Mistral and more with a single <code
+            style="color:var(--yellow);background:var(--bg3);padding:1px 5px;font-size:0.8rem">--model</code> flag.
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <div class="feature-name">Pixel Animations</div>
+        <div class="feature-desc">Copilot-style typewriter responses, braille spinners, and full-width adaptive borders
+          that look great in any terminal.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📄</div>
+        <div class="feature-name">File Summarizer</div>
+        <div class="feature-desc">Drop any text file and get an instant AI summary. Perfect for docs, logs, READMEs, and
+          code files.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💻</div>
+        <div class="feature-name">Code Generator</div>
+        <div class="feature-desc">Generate code in any language with syntax-highlighted output directly in your
+          terminal.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔌</div>
+        <div class="feature-name">OpenRouter Powered</div>
+        <div class="feature-desc">One API key, 200+ models. No vendor lock-in. Pay only for what you use — many models
+          are free.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🪟</div>
+        <div class="feature-name">Cross Platform</div>
+        <div class="feature-desc">Works on Windows, macOS, and Linux. One-line install scripts for every platform.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMANDS -->
+  <section class="commands-section reveal" id="commands">
+    <div class="section-label">// usage</div>
+    <h2 class="section-title">Commands</h2>
+    <p class="section-sub" style="margin-top:12px">Everything available from the terminal.</p>
+    <div class="cmd-list">
+      <div class="cmd-item">
+        <div class="cmd-name"><span class="dollar">$</span>ai chat ask-cmd "..."</div>
+        <div class="cmd-desc">Ask any question. Supports any OpenRouter model via <code
+            style="color:var(--yellow);background:var(--bg3);padding:1px 5px">--model</code>. Typewriter output with
+          animated borders.</div>
+      </div>
+      <div class="cmd-item">
+        <div class="cmd-name"><span class="dollar">$</span>ai summarize file README.md</div>
+        <div class="cmd-desc">Summarize any text file. Reads the file and returns a concise AI-generated summary.</div>
+      </div>
+      <div class="cmd-item">
+        <div class="cmd-name"><span class="dollar">$</span>ai summarize text "..."</div>
+        <div class="cmd-desc">Summarize a string of text directly from the command line. No file needed.</div>
+      </div>
+      <div class="cmd-item">
+        <div class="cmd-name"><span class="dollar">$</span>ai code generate "..."</div>
+        <div class="cmd-desc">Generate code from a plain-language description. Use <code
+            style="color:var(--yellow);background:var(--bg3);padding:1px 5px">--lang python</code> to specify language.
+        </div>
+      </div>
+      <div class="cmd-item">
+        <div class="cmd-name"><span class="dollar">$</span>ai --help</div>
+        <div class="cmd-desc">Show all available commands and options with the animated banner.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">
+      Built with <span style="color: #c084fc">Sasanka Akash</span>  · Powered by <a href="https://openrouter.ai" target="_blank">OpenRouter</a> ·
+      <a href="https://github.com/SasankaAE/ai-toolkit-cli" target="_blank">GitHub</a>
+    </div>
+    <div class="footer-links">
+      <a href="https://pypi.org/project/ai-toolkit-cli" target="_blank">PyPI</a>
+      <a href="https://github.com/SasankaAE/ai-toolkit-cli/issues" target="_blank">Issues</a>
+      <a href="https://openrouter.ai/docs" target="_blank">API Docs</a>
+    </div>
+  </footer>
+
+  <script>
+    // ── Cursor (desktop only) ──
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    if (window.matchMedia('(pointer: fine)').matches) {
+      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+      (function animCursor() {
+        cursor.style.left = (mx - 4) + 'px';
+        cursor.style.top = (my - 4) + 'px';
+        rx += (mx - rx) * 0.12;
+        ry += (my - ry) * 0.12;
+        ring.style.left = (rx - 14) + 'px';
+        ring.style.top = (ry - 14) + 'px';
+        requestAnimationFrame(animCursor);
+      })();
+      document.querySelectorAll('a,button').forEach(el => {
+        el.addEventListener('mouseenter', () => ring.style.transform = 'scale(1.6)');
+        el.addEventListener('mouseleave', () => ring.style.transform = 'scale(1)');
+      });
+    }
+
+    // ── Mobile menu ──
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      mobileMenu.classList.toggle('open');
+    });
+    function closeMobileMenu() {
+      hamburger.classList.remove('open');
+      mobileMenu.classList.remove('open');
+    }
+
+    // ── Terminal animation ──
+    const lines = [
+      { type: 'cmd', text: 'pip install ai-toolkit-cli' },
+      { type: 'out', text: 'Successfully installed ai-toolkit-cli', color: 'green' },
+      { type: 'blank' },
+      { type: 'cmd', text: 'ai chat ask-cmd "What is machine learning"' },
+      { type: 'spin', text: '⣾  Thinking...' },
+      { type: 'border-top' },
+      { type: 'response', text: 'Machine learning is a branch of AI that enables systems to learn from data and improve without being explicitly programmed. It powers recommendations, image recognition, and language models.' },
+      { type: 'border-bot' },
+      { type: 'blank' },
+      { type: 'cmd', text: 'ai chat ask-cmd "How to works LLM"', cursor: true },
+    ];
+
+    const body = document.getElementById('termBody');
+
+    async function typeText(el, text, speed = 28) {
+      for (const ch of text) {
+        el.textContent += ch;
+        await new Promise(r => setTimeout(r, speed));
+      }
+    }
+
+    async function runTerminal() {
+      await new Promise(r => setTimeout(r, 800));
+      for (const line of lines) {
+        if (line.type === 'blank') {
+          body.innerHTML += '<div style="height:6px"></div>';
+          continue;
+        }
+        if (line.type === 'border-top') {
+          body.innerHTML += `<div class="t-line"><span class="t-purple">╔═ AI ══════════════════════════════════════╗</span></div>`;
+          body.innerHTML += `<div class="t-line"><span class="t-purple">║</span><span style="display:inline-block;width:44ch"> </span><span class="t-purple">║</span></div>`;
+          await new Promise(r => setTimeout(r, 60));
+          continue;
+        }
+        if (line.type === 'border-bot') {
+          body.innerHTML += `<div class="t-line"><span class="t-purple">║</span><span style="display:inline-block;width:44ch"> </span><span class="t-purple">║</span></div>`;
+          body.innerHTML += `<div class="t-line"><span class="t-purple">╚═══════════════════════════════════════════╝</span></div>`;
+          await new Promise(r => setTimeout(r, 60));
+          continue;
+        }
+        if (line.type === 'spin') {
+          const div = document.createElement('div');
+          div.className = 't-line';
+          div.innerHTML = `<span class="t-cyan">${line.text}</span>`;
+          body.appendChild(div);
+          const frames = ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'];
+          let fi = 0;
+          const iv = setInterval(() => {
+            div.querySelector('span').textContent = frames[fi++ % frames.length] + '  Thinking...';
+          }, 80);
+          await new Promise(r => setTimeout(r, 1200));
+          clearInterval(iv);
+          div.remove();
+          continue;
+        }
+        if (line.type === 'response') {
+          const div = document.createElement('div');
+          div.className = 't-line';
+          div.innerHTML = `<span class="t-purple">║</span> <span class="t-out response-inner"></span> <span class="t-purple">║</span>`;
+          body.appendChild(div);
+          const inner = div.querySelector('.response-inner');
+          await typeText(inner, line.text, 14);
+          await new Promise(r => setTimeout(r, 60));
+          continue;
+        }
+        const div = document.createElement('div');
+        div.className = 't-line';
+        if (line.type === 'cmd') {
+          div.innerHTML = `<span class="t-prompt">❯ </span><span class="t-cmd cmd-inner"></span>${line.cursor ? '<span class="t-cursor"></span>' : ''}`;
+          body.appendChild(div);
+          const inner = div.querySelector('.cmd-inner');
+          await typeText(inner, line.text, 32);
+          await new Promise(r => setTimeout(r, 200));
+        } else {
+          const colorClass = line.color || 'out';
+          div.innerHTML = `<span class="t-${colorClass}">${line.text}</span>`;
+          body.appendChild(div);
+          await new Promise(r => setTimeout(r, 80));
+        }
+        body.scrollTop = body.scrollHeight;
+      }
+    }
+    runTerminal();
+
+    // ── Tab switching ──
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.install-box').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.tab-btn.${name}`).classList.add('active');
+      document.getElementById(`tab-${name}`).classList.add('active');
+    }
+
+    // ── Copy button ──
+    function copyCmd(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = '✓ Copied';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+
+    // ── Scroll reveal ──
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+
+</html>
