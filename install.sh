@@ -18,7 +18,7 @@ pip3 install ai-toolkit-cli --upgrade -q
 echo "  [3/3] Verifying..."
 if command -v ai &> /dev/null; then
     echo ""
-    echo "  Done! Run: ai chat ask-cmd What is Python"
+    echo "  Done! Run: ai chat ask-cmd "What is Python" "
     echo ""
 else
     echo "  [ERROR] Failed. Try: pip3 install ai-toolkit-cli"
