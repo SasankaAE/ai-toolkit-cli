@@ -3,7 +3,7 @@ from pathlib import Path
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# ── Config file location ──────────────────────────────
+# ── Config location ───────────────────────────────────
 CONFIG_DIR  = Path.home() / ".ai-toolkit"
 CONFIG_FILE = CONFIG_DIR / "config.env"
 
@@ -18,7 +18,7 @@ def load_api_key() -> str | None:
         return os.environ["OPENROUTER_API_KEY"]
     # 2. Check saved config file
     if CONFIG_FILE.exists():
-        load_dotenv(CONFIG_FILE)
+        load_dotenv(CONFIG_FILE, override=True)
         return os.environ.get("OPENROUTER_API_KEY")
     return None
 

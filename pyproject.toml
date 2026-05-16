@@ -1,10 +1,10 @@
 [project]
 name = "ai-toolkit-cli"
-version = "1.0.0"
+version = "1.0.1"
 description = "AI Toolkit CLI powered by OpenRouter"
 readme = "README.md"
-license = { text = "MIT" }
-authors = [{ name = "Sasanka Akash", email = "sasankaakash22@gmail.com" }]
+license = "MIT"
+authors = [{ name = "Your Name", email = "you@email.com" }]
 requires-python = ">=3.10"
 dependencies = [
     "typer>=0.12.0",
@@ -18,9 +18,12 @@ dependencies = [
 ai = "ai_toolkit.main:app"
 
 [project.urls]
-Homepage = "https://github.com/SasankaAE/ai-toolkit-cli"
-Documentation = "https://SasankaAE.github.io/ai-toolkit-cli"
+Homepage = "https://github.com/YOUR_USERNAME/ai-toolkit-cli"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["ai_toolkit*"]
+exclude = ["frontend*", "docs*", ".venv*"]
