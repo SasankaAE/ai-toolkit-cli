@@ -83,9 +83,9 @@ Write-Host "  ╚═════════════════════
 Write-Host ""
 Write-Host "  Try it now:" -ForegroundColor White
 Write-Host "  ai" -ForegroundColor Yellow
-Write-Host "  ai chat ask-cmd "What is Python" " -ForegroundColor Yellow
+Write-Host '  ai chat ask-cmd "What is Python"' -ForegroundColor Yellow
 Write-Host "  ai summarize file README.md" -ForegroundColor Yellow
-Write-Host "  ai summarize text "Hello, World!" " -ForegroundColor Yellow
-Write-Host "  ai code generate "How to create a Python function" " -ForegroundColor Yellow
+Write-Host '  ai summarize text "Hello, World!"' -ForegroundColor Yellow
+Write-Host '  ai code generate "How to create a Python function"' -ForegroundColor Yellow
 Write-Host "  ai --help" -ForegroundColor Yellow
 Write-Host ""
