@@ -29,7 +29,7 @@ if (Get-Command ai -ErrorAction SilentlyContinue) {
     Write-Host "  1. Set your API key:" -ForegroundColor DarkGray
     Write-Host '     $env:OPENROUTER_API_KEY="sk-or-..."' -ForegroundColor Yellow
     Write-Host "  2. Run:" -ForegroundColor DarkGray
-    Write-Host "     ai chat ask-cmd What is Python" -ForegroundColor Yellow
+    Write-Host "     ai chat ask-cmd "What is Python"" -ForegroundColor Yellow
     Write-Host ""
 } else {
     Write-Host "  [ERROR] Installation failed. Try: pip install ai-toolkit-cli" -ForegroundColor Red
