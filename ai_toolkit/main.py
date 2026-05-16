@@ -56,8 +56,8 @@ def show_banner():
   ║  \033[94m██║  ██║███████╗  ██║   ╚██████╔╝\033[96m       ║
   ║  \033[94m╚═╝  ╚═╝╚══════╝  ╚═╝    ╚═════╝ \033[96m       ║
   ║                                          ║
-  ║  \033[97m🤖 AI Toolkit CLI  v1.0.0           \033[96m  ║
-  ║  \033[92m⚡ Powered by OpenRouter            \033[96m  ║
+  ║  \033[97m🤖 AI Toolkit CLI  v1.0.0           \033[96m    ║
+  ║  \033[92m⚡ Powered by OpenRouter            \033[96m    ║
   ║                                          ║
   ╚══════════════════════════════════════════╝\033[0m"""
     for line in banner.split("\n"):
