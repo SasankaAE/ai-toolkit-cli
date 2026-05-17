@@ -6,6 +6,7 @@ import os
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.live import Live
 from rich.text import Text
 from ai_toolkit.core.client import ask
 
@@ -15,28 +16,6 @@ app = typer.Typer()
 console = Console()
 
 SPINNER_FRAMES = ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"]
-
-C_RESET  = "\033[0m"
-C_BORDER = "\033[38;5;99m"
-C_LABEL  = "\033[38;5;213m"
-C_SPINNER= "\033[38;5;87m"
-
-
-def spinning(stop_event):
-    i = 0
-    w = shutil.get_terminal_size((80, 20)).columns
-    while not stop_event.is_set():
-        frame = SPINNER_FRAMES[i % len(SPINNER_FRAMES)]
-        msg = f"  {frame}  Thinking..."
-        pad = " " * (w - len(msg) - 4)
-        print(
-            f"\r{C_BORDER}│{C_RESET} {C_SPINNER}{msg}{pad}{C_RESET} {C_BORDER}│{C_RESET}",
-            end="", flush=True
-        )
-        time.sleep(0.08)
-        i += 1
-    w = shutil.get_terminal_size((80, 20)).columns
-    print("\r" + " " * w + "\r", end="", flush=True)
 
 
 def print_user_box(question: str):
@@ -49,8 +28,40 @@ def print_user_box(question: str):
     ))
 
 
-def print_response_box(text: str):
-    console.print()
+def spinning_live(stop_event):
+    """Rich live spinner inside a panel."""
+    i = 0
+    with Live(console=console, refresh_per_second=15) as live:
+        while not stop_event.is_set():
+            frame = SPINNER_FRAMES[i % len(SPINNER_FRAMES)]
+            live.update(Panel(
+                Text(f"{frame}  Thinking...", style="bold cyan"),
+                title="[bold magenta] AI [/bold magenta]",
+                border_style="magenta",
+                padding=(1, 2),
+            ))
+            time.sleep(0.08)
+            i += 1
+
+
+def typewriter_live(text: str):
+    """Typewriter effect with rich markdown rendered live inside panel."""
+    displayed = ""
+    words = text.split(" ")
+
+    with Live(console=console, refresh_per_second=30) as live:
+        for word in words:
+            displayed += word + " "
+            live.update(Panel(
+                Markdown(displayed + "▌"),
+                title="[bold magenta] AI [/bold magenta]",
+                border_style="magenta",
+                padding=(1, 2),
+                subtitle="[dim]powered by OpenRouter[/dim]",
+            ))
+            time.sleep(0.045)
+
+    # Final render without cursor
     console.print(Panel(
         Markdown(text),
         title="[bold magenta] AI [/bold magenta]",
@@ -75,12 +86,9 @@ def ask_cmd(
 
     # User box
     print_user_box(question)
+    console.print()
 
-    # Spinner box top
-    w = shutil.get_terminal_size((80, 20)).columns
-    inner = w - 4
-    print(f"\n{C_BORDER}│{C_RESET} {C_SPINNER}  Fetching response...{' ' * (inner - 22)}{C_RESET} {C_BORDER}│{C_RESET}")
-
+    # Fetch with spinner
     response_holder = {}
     stop_event = threading.Event()
 
@@ -91,9 +99,10 @@ def ask_cmd(
             response_holder["result"] = f"Error: {e}"
         stop_event.set()
 
-    thread = threading.Thread(target=fetch)
+    thread = threading.Thread(target=fetch, daemon=True)
     thread.start()
-    spinning(stop_event)
+    spinning_live(stop_event)
     thread.join()
 
-    print_response_box(response_holder.get("result", "No response."))
+    # Typewriter response
+    typewriter_live(response_holder.get("result", "No response."))
