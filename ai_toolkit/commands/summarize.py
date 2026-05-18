@@ -2,64 +2,130 @@ import time
 import threading
 import typer
 from pathlib import Path
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.live import Live
+from rich.text import Text
 from ai_toolkit.core.client import ask
-
 import os
-os.system("")  # enable ANSI on Windows
+
+os.system("")
 
 app = typer.Typer()
+console = Console()
 
 SPINNER_FRAMES = ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"]
 
 
-def spinning(stop_event):
+def print_input_box(label: str, content: str):
+    console.print()
+    console.print(Panel(
+        Text(content, style="bold bright_blue"),
+        title=f"[bold bright_blue] {label} [/bold bright_blue]",
+        border_style="bright_blue",
+        padding=(1, 2),
+    ))
+    console.print()
+
+
+def spinning_live(stop_event, label: str = "Summarizing"):
     i = 0
-    while not stop_event.is_set():
-        frame = SPINNER_FRAMES[i % len(SPINNER_FRAMES)]
-        print(f"\r\033[96m  {frame} Summarizing...\033[0m", end="", flush=True)
-        time.sleep(0.08)
-        i += 1
-    print("\r" + " " * 30 + "\r", end="", flush=True)
+    with Live(console=console, refresh_per_second=15) as live:
+        while not stop_event.is_set():
+            frame = SPINNER_FRAMES[i % len(SPINNER_FRAMES)]
+            live.update(Panel(
+                Text(f"{frame}  {label}...", style="bold cyan"),
+                title="[bold magenta] AI [/bold magenta]",
+                border_style="magenta",
+                padding=(1, 2),
+            ))
+            time.sleep(0.08)
+            i += 1
 
 
-def typewriter(text: str):
-    print("\n\033[96m  ╔═ AI ════════════════════════════╗\033[0m")
-    print("  \033[97m", end="", flush=True)
-    for char in text:
-        print(char, end="", flush=True)
-        time.sleep(0.008)
-    print("\n\033[96m  ╚═════════════════════════════════╝\033[0m\n")
+def typewriter_live(text: str, title: str = "SUMMARY"):
+    displayed = ""
+    words = text.split(" ")
+
+    with Live(console=console, refresh_per_second=30) as live:
+        for word in words:
+            displayed += word + " "
+            live.update(Panel(
+                Markdown(displayed + "▌"),
+                title=f"[bold magenta] {title} [/bold magenta]",
+                border_style="magenta",
+                padding=(1, 2),
+                subtitle="[dim]powered by OpenRouter[/dim]",
+            ))
+            time.sleep(0.045)
+
+    # Final clean render
+    console.print(Panel(
+        Markdown(text),
+        title=f"[bold magenta] {title} [/bold magenta]",
+        border_style="magenta",
+        padding=(1, 2),
+        subtitle="[dim]powered by OpenRouter[/dim]",
+    ))
+    console.print()
+
+
+def run(prompt: str, input_label: str, input_preview: str, model: str):
+    print_input_box(input_label, input_preview)
+
+    response_holder = {}
+    stop_event = threading.Event()
+
+    def fetch():
+        try:
+            response_holder["result"] = ask(prompt, model=model)
+        except Exception as e:
+            response_holder["result"] = f"Error: {e}"
+        stop_event.set()
+
+    thread = threading.Thread(target=fetch, daemon=True)
+    thread.start()
+    spinning_live(stop_event)
+    thread.join()
+
+    typewriter_live(response_holder.get("result", "No response."))
 
 
 @app.command()
-def file(path: Path = typer.Argument(..., help="File to summarize")):
+def file(
+    path: Path = typer.Argument(..., help="File to summarize"),
+    model: str = typer.Option("google/gemini-flash-1.5:free", "--model", "-m"),
+):
     """Summarize a text file."""
-    content = path.read_text()
+    if not path.exists():
+        console.print(f"\n[red]  ✗ File not found: {path}[/red]\n")
+        raise typer.Exit()
 
-    stop_event = threading.Event()
-    spinner_thread = threading.Thread(target=spinning, args=(stop_event,))
-    spinner_thread.start()
-
-    try:
-        summary = ask(f"Summarize this:\n\n{content}")
-    finally:
-        stop_event.set()
-        spinner_thread.join()
-
-    typewriter(summary)
+    content = path.read_text(encoding="utf-8")
+    preview = content[:120].replace("\n", " ") + ("..." if len(content) > 120 else "")
+    run(
+        prompt=f"Summarize this:\n\n{content}",
+        input_label=f" 📄 {path.name} ",
+        input_preview=preview,
+        model=model,
+    )
 
 
-@app.command()
-def text(input: str = typer.Argument(...)):
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def text(
+    ctx: typer.Context,
+    model: str = typer.Option("minimax/minimax-m2.5:free", "--model", "-m"),
+):
     """Summarize a string of text."""
-    stop_event = threading.Event()
-    spinner_thread = threading.Thread(target=spinning, args=(stop_event,))
-    spinner_thread.start()
+    input_text = " ".join(ctx.args).strip()
+    if not input_text:
+        console.print("\n[red]  ✗ Please provide text to summarize.[/red]\n")
+        raise typer.Exit()
 
-    try:
-        result = ask(f"Summarize: {input}")
-    finally:
-        stop_event.set()
-        spinner_thread.join()
-
-    typewriter(result)
+    run(
+        prompt=f"Summarize: {input_text}",
+        input_label=" 📝 TEXT ",
+        input_preview=input_text[:120] + ("..." if len(input_text) > 120 else ""),
+        model=model,
+    )
