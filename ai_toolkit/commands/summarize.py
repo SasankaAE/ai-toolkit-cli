@@ -44,7 +44,7 @@ def spinning_live(stop_event, label: str = "Summarizing"):
             i += 1
 
 
-def typewriter_live(text: str, title: str = "SUMMARY"):
+def typewriter_live(text: str, title: str = "AI"):
     displayed = ""
     words = text.split(" ")
 
@@ -60,14 +60,15 @@ def typewriter_live(text: str, title: str = "SUMMARY"):
             ))
             time.sleep(0.045)
 
-    # Final clean render
-    console.print(Panel(
-        Markdown(text),
-        title=f"[bold magenta] {title} [/bold magenta]",
-        border_style="magenta",
-        padding=(1, 2),
-        subtitle="[dim]powered by OpenRouter[/dim]",
-    ))
+        # Remove cursor on last frame — no second print outside
+        live.update(Panel(
+            Markdown(displayed.strip()),
+            title=f"[bold magenta] {title} [/bold magenta]",
+            border_style="magenta",
+            padding=(1, 2),
+            subtitle="[dim]powered by OpenRouter[/dim]",
+        ))
+
     console.print()
 
 
@@ -103,7 +104,8 @@ def file(
         raise typer.Exit()
 
     content = path.read_text(encoding="utf-8")
-    preview = content[:120].replace("\n", " ") + ("..." if len(content) > 120 else "")
+    preview = content[:120].replace(
+        "\n", " ") + ("..." if len(content) > 120 else "")
     run(
         prompt=f"Summarize this:\n\n{content}",
         input_label=f" 📄 {path.name} ",
@@ -126,6 +128,7 @@ def text(
     run(
         prompt=f"Summarize: {input_text}",
         input_label=" 📝 TEXT ",
-        input_preview=input_text[:120] + ("..." if len(input_text) > 120 else ""),
+        input_preview=input_text[:120] +
+        ("..." if len(input_text) > 120 else ""),
         model=model,
     )

@@ -44,8 +44,7 @@ def spinning_live(stop_event):
             i += 1
 
 
-def typewriter_live(text: str):
-    """Typewriter effect with rich markdown rendered live inside panel."""
+def typewriter_live(text: str, title: str = "AI"):
     displayed = ""
     words = text.split(" ")
 
@@ -54,21 +53,22 @@ def typewriter_live(text: str):
             displayed += word + " "
             live.update(Panel(
                 Markdown(displayed + "▌"),
-                title="[bold magenta] AI [/bold magenta]",
+                title=f"[bold magenta] {title} [/bold magenta]",
                 border_style="magenta",
                 padding=(1, 2),
                 subtitle="[dim]powered by OpenRouter[/dim]",
             ))
             time.sleep(0.045)
 
-    # Final render without cursor
-    console.print(Panel(
-        Markdown(text),
-        title="[bold magenta] AI [/bold magenta]",
-        border_style="magenta",
-        padding=(1, 2),
-        subtitle="[dim]powered by OpenRouter[/dim]",
-    ))
+        # Remove cursor on last frame — no second print outside
+        live.update(Panel(
+            Markdown(displayed.strip()),
+            title=f"[bold magenta] {title} [/bold magenta]",
+            border_style="magenta",
+            padding=(1, 2),
+            subtitle="[dim]powered by OpenRouter[/dim]",
+        ))
+
     console.print()
 
 
